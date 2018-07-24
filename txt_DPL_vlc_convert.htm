@@ -1,0 +1,192 @@
+<html>
+<head>
+<title>txt dpl vlc convert - By ★〓★〓★</title>
+<script>
+function DPLbtnClick(){
+	var sourceStr = sourceText.value.split("\n");
+	if(sourceStr[0])
+	var i=0;		//计行变量
+	var ii=1;		//序列号变量
+	aimText.value = '';
+	aimText.value += 'DAUMPLAYLIST\nplayname=UN\ntopindex=0\n';
+	while (i<sourceStr.length){
+		if(sourceStr[i].indexOf(",")>-1){							//如果含有逗号
+			var TvUrl = sourceStr[i].split(",");
+			if(TvUrl[1].indexOf("#")>-1){							//含有#号
+				var t = TvUrl[1].split("#");
+				for(j=0;j<t.length;j++){
+					aimText.value += ii + "*file*" + t[j] +"\n";
+					aimText.value += ii + "*title*" + TvUrl[0] + (j+1) + "\n";
+					aimText.value += ii + "*played*0\n";
+					++ii;
+				}
+			}else{													//不含#号
+				aimText.value += ii + "*file*" + TvUrl[1] + "\n";
+				aimText.value += ii + "*title*" + TvUrl[0] +"\n";
+				aimText.value += ii + "*played*0\n";
+				++ii;
+			}
+		}
+		++i
+	}
+}
+
+function VLCplayListClick(){
+	var sourceStr = sourceText.value.split("\n");
+	var i=0;
+	var ii=0;
+	aimText.value = '';
+	aimText.value += '<?xml version="1.0" encoding="UTF-8"?>\n';
+	aimText.value += '<playlist xmlns="http://xspf.org/ns/0/" xmlns:vlc="http://www.videolan.org/vlc/playlist/ns/0/" version="1">\n';
+	aimText.value += '	<title>PlayList</title>\n';
+	aimText.value += '	<trackList>\n';
+	while (i<sourceStr.length){
+		if (sourceStr[i].indexOf(",")>-1){
+			var TvUrl = sourceStr[i].split(",");
+			if(TvUrl[1].indexOf("#")>-1){
+				var t = TvUrl[1].split("#");
+				for(j=0;j<t.length;j++){
+					aimText.value += "		<track>\n";
+					aimText.value += "			<location>" + t[j] + "</location>\n";
+					aimText.value += "			<title>" + TvUrl[0] + (j+1) + "</title>\n";
+					aimText.value += '			<extension application="http://www.videolan.org/vlc/playlist/0">\n';
+					aimText.value += "				<vlc:id>" + ii + "</vlc:id>\n";
+					aimText.value += "				<vlc:option>network-caching=1000</vlc:option>\n";
+					aimText.value += "			</extension>\n";
+					aimText.value += "		</track>\n";
+					++ii;
+				}
+			}else{
+				aimText.value += "		<track>\n";
+				aimText.value += "			<location>" + TvUrl[1] + "</location>\n";
+				aimText.value += "			<title>" + TvUrl[0] + "</title>\n";
+				aimText.value += '			<extension application="http://www.videolan.org/vlc/playlist/0">\n';
+				aimText.value += "				<vlc:id>" + ii + "</vlc:id>\n";
+				aimText.value += "				<vlc:option>network-caching=1000</vlc:option>\n";
+				aimText.value += "			</extension>\n";
+				aimText.value += "		</track>\n";
+				++ii;
+			}
+		}
+		++i;
+	}
+	aimText.value += '	</trackList>\n';
+	aimText.value += '	<extension application="http://www.videolan.org/vlc/playlist/0">\n';
+	for(a=0;a<ii;a++){
+		aimText.value += '		<vlc:item tid="' + a + '"/>\n';
+	}
+	aimText.value += '	</extension>\n';
+	aimText.value += '</playlist>\n';
+}
+function dpl2txt(){
+	var sourceStr = aimText.value.split("\n");
+	sourceText.value = "";
+	var i = 0;
+	aimFile = "";
+	aimName = "";
+	
+	while(i < sourceStr.length){
+		if(sourceStr[i].indexOf("1*") >= 0) {break;}
+		i++;
+	}
+	for(;i<sourceStr.length;i += 3){
+		for(j=i;j<i+3;j++){
+			if(sourceStr[j].indexOf("*file*") > -1){
+				aimFile = sourceStr[j].substring(sourceStr[j].indexOf("*file*") + 6) + "\n";
+			}
+				
+			if(sourceStr[j].indexOf("*title*") > -1){
+				aimName = sourceStr[j].substring(sourceStr[j].indexOf("*title*") + 7) + ",";
+			}
+		}
+		sourceText.value += aimName + aimFile;
+	}
+}
+function vlc2txt(){
+	var sourceStr = aimText.value.split("\n");
+	sourceText.value = "";
+	var i = 0;
+	var aimFile = "";
+	var aimName = "";
+	
+	while(i < sourceStr.length){
+		if(sourceStr[i].indexOf("<location>") > -1){
+			aimFile = sourceStr[i].substring(sourceStr[i].indexOf("<location>") + 10);
+			aimFile = aimFile.substring(0,aimFile.indexOf("</location>"))	+ "\n";
+			
+			aimName = sourceStr[i+1].substring(sourceStr[i+1].indexOf("<title>") + 7);
+			aimName = aimName.substring(0,aimName.indexOf("</title>")) + ",";
+			sourceText.value += aimName + aimFile;
+		}
+		i++;
+	}
+}
+</script>
+</head>
+<body>
+<p>
+<center><input type="button" value="TXT->PotPlayer" onclick="DPLbtnClick()" />---------<input id="outText" type="button" value="TXT->VLC" onclick="VLCplayListClick()" />---------<input type="file" id="inputBrow"><br />
+</p>
+<textarea style="height:300px; width:900px;" id="sourceText"></textarea><br /><br />
+<hr width=70%><br />
+<textarea style="height:300px; width:900px;" id="aimText"></textarea>
+<p>
+<center><input type="button" value="PotPlayer->TxT" onclick="dpl2txt()" />---------<input type="button" value="VLC->TXT" onclick="vlc2txt()" /><br />
+</p>
+52pj - ★〓★〓★
+</center>
+</body>
+<script>
+
+function dragenter(e) {    
+        e.stopPropagation();    
+        e.preventDefault();    
+    }    
+  
+    function dragover(e) {    
+        e.stopPropagation();    
+        e.preventDefault();    
+    }  
+  
+    function drop(e) {    
+        e.stopPropagation();    
+        e.preventDefault();     
+        var dt = e.dataTransfer;    
+        var files = dt.files;  
+        if(files.length)  
+        {  
+           var file = files[0];  
+           var reader = new FileReader();  
+           reader.onload = function()  
+           {  
+               document.getElementById("sourceText").value = this.result;  
+           };  
+           reader.readAsText(file);
+        }  
+    }   
+
+      var dropbox = document.getElementById("sourceText");    
+      dropbox.addEventListener("dragenter", dragenter, false);    
+      dropbox.addEventListener("dragover", dragover, false);    
+      dropbox.addEventListener("drop", drop, false);
+
+
+(function(){
+	var input = document.querySelector('#inputBrow');
+	var span = document.querySelector('#sourceText');
+	input.addEventListener('change', function(e){
+		handFile(e.target.files[0]);
+	});
+
+	function handFile(file){
+		console.log('hand');
+		var reader = new FileReader();
+		reader.onload = function(e){
+			span.value = e.target.result;
+		};
+		reader.readAsText(file);
+	}
+})();
+
+</script>
+</html>
