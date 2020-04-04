@@ -16,7 +16,7 @@ function DPLbtnClick(){
 				var t = TvUrl[1].split("#");
 				for(j=0;j<t.length;j++){
 					aimText.value += ii + "*file*" + t[j] +"\n";
-					aimText.value += ii + "*title*" + TvUrl[0] + (j+1) + "\n";
+					aimText.value += ii + "*title*" + TvUrl[0] + "_" + (j+1) + "\n";
 					aimText.value += ii + "*played*0\n";
 					++ii;
 				}
